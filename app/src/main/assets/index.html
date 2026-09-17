@@ -1,0 +1,3405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Course Hub — NPTEL Lectures</title>
+<meta name="theme-color" content="#121A17">
+<meta name="description" content="Browse and watch NPTEL lecture courses, YouTube-style, with bookmarking.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#121A17; --surface:#1B2620; --surface-2:#22302A;
+  --ink:#F2F0E8; --ink-muted:#8FA097; --accent:#E8B84B; --accent-ink:#20170A;
+  --border:#283730;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);}
+body{font-family:'IBM Plex Sans',sans-serif;-webkit-tap-highlight-color:transparent;padding-bottom:72px;min-height:100vh;}
+.serif{font-family:'Source Serif 4',serif;}
+button{font-family:inherit;}
+.app-shell{max-width:480px;margin:0 auto;min-height:100vh;position:relative;background:var(--bg);}
+
+header.topbar{padding:18px 16px 10px;position:sticky;top:0;background:var(--bg);z-index:5;border-bottom:1px solid var(--border);}
+header.topbar h1{font-family:'Source Serif 4',serif;font-weight:600;font-size:21px;margin:0 0 12px;}
+.search-row{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--ink-muted);}
+.search-row svg{flex:none;}
+.search-row input{flex:1;background:none;border:none;outline:none;color:var(--ink);font-size:15px;font-family:'IBM Plex Sans',sans-serif;}
+.search-row input::placeholder{color:var(--ink-muted);}
+
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;scrollbar-width:none;}
+.chips::-webkit-scrollbar{display:none;}
+.chip{flex:none;padding:7px 14px;border-radius:999px;border:1px solid var(--border);background:var(--surface);color:var(--ink-muted);font-size:13.5px;white-space:nowrap;}
+.chip.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600;}
+
+#feed{padding:2px 16px 12px;}
+.count-row{color:var(--ink-muted);font-size:13px;padding:6px 2px 10px;}
+
+.card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.card-thumb{position:relative;aspect-ratio:16/9;background:linear-gradient(160deg,var(--surface-2),var(--surface));display:flex;align-items:center;justify-content:center;color:var(--ink-muted);}
+.card-thumb .code-badge{position:absolute;top:8px;left:8px;font-size:11px;font-weight:600;letter-spacing:.4px;color:var(--ink-muted);background:rgba(0,0,0,.3);padding:3px 7px;border-radius:6px;}
+.bookmark-btn{position:absolute;top:6px;right:6px;width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;background:rgba(8,12,10,.55);border:none;color:var(--ink);}
+.bookmark-btn svg{width:17px;height:17px;}
+.bookmark-btn.active svg path{fill:var(--accent);stroke:var(--accent);}
+.card-body{padding:12px 14px 14px;}
+.card-title{font-family:'Source Serif 4',serif;font-size:16.5px;font-weight:600;line-height:1.32;margin:0 0 6px;}
+.card-meta{font-size:12.5px;color:var(--ink-muted);margin:0;}
+
+.load-more{display:block;width:100%;padding:12px;margin:4px 0 8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--ink);font-size:14px;font-weight:500;}
+
+.empty-state{padding:60px 24px;text-align:center;color:var(--ink-muted);font-size:14px;line-height:1.5;}
+.empty-state .serif{font-size:18px;color:var(--ink);display:block;margin-bottom:6px;}
+
+.watch-view{position:fixed;inset:0;background:var(--bg);z-index:20;overflow-y:auto;}
+.watch-view.hidden{display:none;}
+.watch-top{display:flex;align-items:center;padding:12px;position:sticky;top:0;background:var(--bg);z-index:2;max-width:480px;margin:0 auto;}
+.back-btn{background:none;border:none;color:var(--ink);display:flex;align-items:center;justify-content:center;width:34px;height:34px;}
+.player-wrap{aspect-ratio:16/9;background:#000;width:100%;max-width:480px;margin:0 auto;}
+.player-wrap iframe{width:100%;height:100%;border:none;display:block;}
+.watch-info{padding:16px;max-width:480px;margin:0 auto;}
+.discipline-tag{display:inline-block;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:999px;padding:3px 10px;margin-bottom:10px;}
+.watch-info h2{font-family:'Source Serif 4',serif;font-size:21px;font-weight:600;margin:0 0 14px;line-height:1.3;}
+.save-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--surface);color:var(--ink);padding:9px 16px;border-radius:999px;font-size:14px;font-weight:500;}
+.save-btn.active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+.save-btn svg path{stroke:currentColor;}
+.watch-note{margin-top:18px;font-size:13px;color:var(--ink-muted);line-height:1.55;}
+
+nav.bottomnav{position:fixed;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;display:flex;background:var(--surface);border-top:1px solid var(--border);z-index:10;}
+nav.bottomnav button{flex:1;background:none;border:none;color:var(--ink-muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0 8px;font-size:11.5px;}
+nav.bottomnav button.active{color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <h1>Course Hub</h1>
+    <div class="search-row">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <input id="searchInput" type="text" placeholder="Search courses">
+    </div>
+  </header>
+
+  <div class="chips" id="chips"></div>
+
+  <div id="homeView">
+    <div class="count-row" id="countRow"></div>
+    <div id="feed"></div>
+  </div>
+
+  <div id="savedView" style="display:none;">
+    <div id="savedFeed"></div>
+  </div>
+
+  <nav class="bottomnav">
+    <button class="active" data-tab="home">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 11L12 4l8 7M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Home
+    </button>
+    <button data-tab="saved">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M6 4h12v17l-6-4-6 4V4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      Saved
+    </button>
+  </nav>
+
+  <div id="watchView" class="watch-view hidden">
+    <div class="watch-top">
+      <button class="back-btn" id="backBtn" aria-label="Back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="player-wrap" id="playerWrap"></div>
+    <div class="watch-info" id="watchInfo"></div>
+  </div>
+</div>
+
+<script>
+const COURSES = [
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Acoustic Instabilities in Aerospace Propulsion",
+  "playlistId": "PLbMVogVj5nJSHP0t4uPZBv9I-e7CTgV0t",
+  "id": "c001"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Advanced Control System Design for Aerospace Vehicles",
+  "playlistId": "PL2936356E07178528",
+  "id": "c002"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Aero elasticity",
+  "playlistId": "PL59C0B5D9811F3609",
+  "id": "c003"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Aerospace Propulsion",
+  "playlistId": "PLbMVogVj5nJTCNrek8ZsX1-YOe-O5NVI-",
+  "id": "c004"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Combustion",
+  "playlistId": "PLbMVogVj5nJQDbg-ivB9ilWI9h3aJ78-y",
+  "id": "c005"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Flight Dynamics II (Stability)",
+  "playlistId": "PL54A4E6BABF2F90B9",
+  "id": "c006"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Foundation of Scientific Computing",
+  "playlistId": "PLA82384B9A9B6C252",
+  "id": "c007"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Gas Dynamics",
+  "playlistId": "PLbMVogVj5nJRm6ODNAemYPS7E62_hPiqH",
+  "id": "c008"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "High Speed Aero Dynamics",
+  "playlistId": "PLbMVogVj5nJTJC4syFEUhSc9SnTb6QpZE",
+  "id": "c009"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Instability and Transition of Fluid Flows",
+  "playlistId": "PLBC66ADC62E59C06B",
+  "id": "c010"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Introduction to Aerodynamics",
+  "playlistId": "PLbMVogVj5nJRMx9Ou8luatlFpTpZJTxu2",
+  "id": "c011"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Introduction to Aerospace Propulsion",
+  "playlistId": "PLbMVogVj5nJSm6LFzKGSHmaPQnKjpmZYF",
+  "id": "c012"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Introduction to CFD",
+  "playlistId": "PLbMVogVj5nJR_10rwYXD-X5QWLYIcfcc9",
+  "id": "c013"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Introduction to Helicopter Aerodynamics & Dynamics",
+  "playlistId": "PLAE677E56C97A7C7D",
+  "id": "c014"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Introduction to Propulsion",
+  "playlistId": "PLbMVogVj5nJQt5nsksLn4qcsBrDL_JKkd",
+  "id": "c015"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Jet Aircraft Propulsion",
+  "playlistId": "PLbMVogVj5nJS7srFCd_hJwdgHRd27YMgF",
+  "id": "c016"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Jet and Rocket Propulsion",
+  "playlistId": "PLbMVogVj5nJSCWZNo0sUSxanAp4TN2G-x",
+  "id": "c017"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Optimal Control, Guidance and Estimation",
+  "playlistId": "PLbMVogVj5nJRj2MJ0AVwMO0uoaIuSMOSr",
+  "id": "c018"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Space Flight Mechanics",
+  "playlistId": "PLbMVogVj5nJSiVuBHAyAKBtC7-E0hsApp",
+  "id": "c019"
+ },
+ {
+  "discipline": "Aerospace Engineering",
+  "title": "Turbomachinery Aerodynamics",
+  "playlistId": "PLbMVogVj5nJSXjTminozHEFZJkN_ojx_e",
+  "id": "c020"
+ },
+ {
+  "discipline": "Agriculture Engineering",
+  "title": "Crop Production Fundamentals (BCPP)",
+  "playlistId": "PLbMVogVj5nJSdqfPf-yVB-pk5dvI9JQp1",
+  "id": "c021"
+ },
+ {
+  "discipline": "Agriculture Engineering",
+  "title": "GIS in Ag-Essentials and Applications (GIS)",
+  "playlistId": "PLbMVogVj5nJQ9wvxWk1pQSwkkQ_DbFJ0y",
+  "id": "c022"
+ },
+ {
+  "discipline": "Agriculture Engineering",
+  "title": "Integrated Pest Management (IPM)",
+  "playlistId": "PLbMVogVj5nJS4bm1GlNL6JGClgAAQ10zS",
+  "id": "c023"
+ },
+ {
+  "discipline": "Agriculture Engineering",
+  "title": "Nutrition, Therapeutics and Health (NM)",
+  "playlistId": "PLbMVogVj5nJTIQTtu0p16r71cxt77VKcG",
+  "id": "c024"
+ },
+ {
+  "discipline": "Agriculture Engineering",
+  "title": "Weather Forecast in Agriculture and Agro-advisory (WF)",
+  "playlistId": "PLbMVogVj5nJTXnWcSkNIdXiStRy65nktD",
+  "id": "c025"
+ },
+ {
+  "discipline": "Biotechnology and Bioengineering",
+  "title": "Analytical Technologies in Biotechnology",
+  "playlistId": "PLbMVogVj5nJQnmDi4vK8EYwQvNoL_ySRU",
+  "id": "c026"
+ },
+ {
+  "discipline": "Biotechnology and Bioengineering",
+  "title": "Animal Physiology",
+  "playlistId": "PLbMVogVj5nJR9IvLANBOl6wrKXEwdVF_O",
+  "id": "c027"
+ },
+ {
+  "discipline": "Biotechnology and Bioengineering",
+  "title": "Bio electricity",
+  "playlistId": "PLbMVogVj5nJSIzsjuVKL0VJBImqjyXyLJ",
+  "id": "c028"
+ },
+ {
+  "discipline": "Biotechnology and Bioengineering",
+  "title": "Biomathematics",
+  "playlistId": "PLbMVogVj5nJSRAqzS5HV8xzqcRR_wyHec",
+  "id": "c029"
+ },
+ {
+  "discipline": "Biotechnology and Bioengineering",
+  "title": "Downstream Processing",
+  "playlistId": "PLbMVogVj5nJTmNUnrRLWvLc21U5O-jn9I",
+  "id": "c030"
+ },
+ {
+  "discipline": "Biotechnology and Bioengineering",
+  "title": "Enzyme Science and Engineering",
+  "playlistId": "PL6639898F1137AFAA",
+  "id": "c031"
+ },
+ {
+  "discipline": "Biotechnology and Bioengineering",
+  "title": "Essentials in Immunolgy",
+  "playlistId": "PLECA78684C931E6B7",
+  "id": "c032"
+ },
+ {
+  "discipline": "Biotechnology and Bioengineering",
+  "title": "Eukaryotic Gene Expression",
+  "playlistId": "PL933506E0FA39B6C0",
+  "id": "c033"
+ },
+ {
+  "discipline": "Biotechnology and Bioengineering",
+  "title": "Proteomics: Principles and Techniques",
+  "playlistId": "PLbMVogVj5nJR4P1mj4mTS8HEA7HX-LqVY",
+  "id": "c034"
+ },
+ {
+  "discipline": "Biotechnology and Bioengineering",
+  "title": "Thermodynamics",
+  "playlistId": "PL5659F55847E64D75",
+  "id": "c035"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Advanced Chemical Reaction Engineering (PG)",
+  "playlistId": "PLbMVogVj5nJQWq-TfjKUEXgPhiNLFBFT2",
+  "id": "c036"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Advanced Mathematical Techniques in Chemical Engg",
+  "playlistId": "PLbMVogVj5nJShG25-ezbHPY5qogsATbeD",
+  "id": "c037"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Advanced Numerical Analysis",
+  "playlistId": "PLbMVogVj5nJS4AsBvnp9bCw0wAovDlXPl",
+  "id": "c038"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Advanced Process Control",
+  "playlistId": "PLbMVogVj5nJQyAnqmAcyqA6HYoEgh9BTM",
+  "id": "c039"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Biochemical Engineering",
+  "playlistId": "PL6A433F179A32A866",
+  "id": "c040"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Chemical Engineering Principles of CVD Processes",
+  "playlistId": "PLbMVogVj5nJRh2TrRASgdICq0O5WfW_x0",
+  "id": "c041"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Chemical Engineering Thermodynamics",
+  "playlistId": "PLbMVogVj5nJTO1s7e0idZEW9dy8KYfLL5",
+  "id": "c042"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Chemical Reaction Engineering",
+  "playlistId": "PLE6AABEBC55CC0F74",
+  "id": "c043"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Chemical Reaction Engineering 1 (Homogeneous Reactors)",
+  "playlistId": "PLbMVogVj5nJRrrhcrAIIJs1W0qgH5axqO",
+  "id": "c044"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Chemical Reaction Engineering 2 (Heterogeneous Reactors)",
+  "playlistId": "PLbMVogVj5nJRQWgDF67gauqRaUeW7feKQ",
+  "id": "c045"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Chemical Reaction Engineering II",
+  "playlistId": "PLbMVogVj5nJQErn57Jr7pt_1ncHS-c6ib",
+  "id": "c046"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Chemical Technology - I",
+  "playlistId": "PLbMVogVj5nJSew0dIborypi2sjPU2Azz6",
+  "id": "c047"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Computational Fluid Dynamics",
+  "playlistId": "PLA862585F1B9ACCBD",
+  "id": "c048"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Computational Techniques",
+  "playlistId": "PL42204FB1209D0EC3",
+  "id": "c049"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Fluid Mechanics",
+  "playlistId": "PLbMVogVj5nJQqyKLjvvgAC38ThsmjCJad",
+  "id": "c050"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Fundamentals of Transport Processes",
+  "playlistId": "PL02F0C1794E621BD0",
+  "id": "c051"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Fundamentals of Transport Processes - II",
+  "playlistId": "PLbMVogVj5nJTebmBoysEQYT_-Q8kOZQWe",
+  "id": "c052"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Heterogeneous Catalysis and Catalytic Processes",
+  "playlistId": "PLbMVogVj5nJQVyjZ-lEYm8Sp1jSynW9MD",
+  "id": "c053"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Instability & Patterning of Thin Polymer Films",
+  "playlistId": "PLE4F2282F66AEA9EF",
+  "id": "c054"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Interfacial Engineering",
+  "playlistId": "PLbMVogVj5nJSDFd-zudqQUyhJI0ZNdkC-",
+  "id": "c055"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Mass Transfer II",
+  "playlistId": "PL38769A2045D58D20",
+  "id": "c056"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Mass Transfer Operations I",
+  "playlistId": "PLbMVogVj5nJSOgW8GYe_nJ3MYfnCQ3XXM",
+  "id": "c057"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Microscale Transport Processes",
+  "playlistId": "PLBC188A9DB924B6EB",
+  "id": "c058"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Modern Instrumental Methods of Analysis",
+  "playlistId": "PL400CAFBA72E94CF8",
+  "id": "c059"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Multiphase Flow",
+  "playlistId": "PLbMVogVj5nJQJ9mEUoQj8EPyhH1QMYPh6",
+  "id": "c060"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Multiphase flows:Analytical solutions and Stability Analysis",
+  "playlistId": "PLbMVogVj5nJRsXU2WZyMTIDq6tPCjlQB3",
+  "id": "c061"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Novel Separation Processes",
+  "playlistId": "PLA15B70D88CA21EBE",
+  "id": "c062"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Particle Characterization",
+  "playlistId": "PL1FB61CA43389A7BC",
+  "id": "c063"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Plantwide Control of Chemical Processes",
+  "playlistId": "PLbMVogVj5nJSVd3w8uYYISr70gD2w-_l9",
+  "id": "c064"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Process Control and Instrumentation",
+  "playlistId": "PLF404D44A280B5C77",
+  "id": "c065"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Process Design Decisions and Project Economics",
+  "playlistId": "PLbMVogVj5nJS8aivkHJC_5KMvYj7wMcvk",
+  "id": "c066"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Process Integration",
+  "playlistId": "PLbMVogVj5nJS1MaQpZC8Szg7FzBlnSWpT",
+  "id": "c067"
+ },
+ {
+  "discipline": "Chemical Engineering",
+  "title": "Statistics for Experimentalists",
+  "playlistId": "PLbMVogVj5nJTfgt1USjonqSC8wcvx70s-",
+  "id": "c068"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Advance Analytical Course",
+  "playlistId": "PLbMVogVj5nJRIOXZ1CzC3_s7lFFMXZwIw",
+  "id": "c069"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Bio-physical Chemistry",
+  "playlistId": "PLbMVogVj5nJRL9Sk6JC01sinnpcGG_RDk",
+  "id": "c070"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Chemistry - Bio Inorganic Chemistry",
+  "playlistId": "PLbMVogVj5nJSHhL_cMKfzLv556ddrIT90",
+  "id": "c071"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Chemistry of Materials",
+  "playlistId": "PLbMVogVj5nJRoCUt4wSBsB4qCAnk_XQNM",
+  "id": "c072"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Co-ordination chemistry (chemistry of transition elements)",
+  "playlistId": "PLbMVogVj5nJTWU1tCPCtLBaiWNsJRAiZZ",
+  "id": "c073"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Heterocyclic Chemistry",
+  "playlistId": "PLbMVogVj5nJQ9-OJPLXXPjMMuwc0VvQCs",
+  "id": "c074"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Introduction to Organometallic Chemistry",
+  "playlistId": "PLbMVogVj5nJR65WP0IQaDCBtCRq_HAuI_",
+  "id": "c075"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Introduction to Quantum Chemistry",
+  "playlistId": "PLbMVogVj5nJQiyoA6AQ9qLJT8TxcSTwi4",
+  "id": "c076"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Introductory Quantum Chemistry",
+  "playlistId": "PLbMVogVj5nJRiUhnP3bleX5Kp3ljZaX1C",
+  "id": "c077"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Mathematics for Chemistry",
+  "playlistId": "PLbMVogVj5nJSKHWwEKJGxN2N8UC6EkOkl",
+  "id": "c078"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Organic Photochemistry and Pericyclic Reactions",
+  "playlistId": "PLA1A08D1AF30B1FA3",
+  "id": "c079"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Polymer Chemistry",
+  "playlistId": "PLbMVogVj5nJT0slH3tuas5BIp1DG8ZpMj",
+  "id": "c080"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Principles and Applications of Electron Paramagnetic Resonance Spectroscopy",
+  "playlistId": "PLbMVogVj5nJTdC-wb4DGVL3o3QKPDE_CU",
+  "id": "c081"
+ },
+ {
+  "discipline": "Chemistry",
+  "title": "Rate Processes",
+  "playlistId": "PLCDA510B6D57FC6C3",
+  "id": "c082"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Advanced Foundation Engineering",
+  "playlistId": "PLbMVogVj5nJQtuLxDm2M3KdUTuB4ZOdXT",
+  "id": "c083"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Advanced Geotechnical Engineering",
+  "playlistId": "PLbMVogVj5nJSceP2UMlDQfntawRHnFfwd",
+  "id": "c084"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Advanced Hydraulics",
+  "playlistId": "PLbMVogVj5nJSiqqXpoEo8-3xCbnufcyQt",
+  "id": "c085"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Advanced Hydrology",
+  "playlistId": "PL46E570049699F5F2",
+  "id": "c086"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Advanced Structural Analysis",
+  "playlistId": "PLEE5D02698EAAF2C0",
+  "id": "c087"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Application of Soil Mechanics",
+  "playlistId": "PLbMVogVj5nJRIdIjlAL1h13BWHC3Hmn8i",
+  "id": "c088"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Building Materials and Construction",
+  "playlistId": "PL8BA090E69BF01BC2",
+  "id": "c089"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Concrete Technology",
+  "playlistId": "PLbMVogVj5nJQU7M0LdA77p_XaaWBJniNc",
+  "id": "c090"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Design of Reinforced Concrete Structures",
+  "playlistId": "PL51300B0778FB5784",
+  "id": "c091"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Engineering Geology",
+  "playlistId": "PLDF5162B475DD915F",
+  "id": "c092"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Environmental Air Pollution",
+  "playlistId": "PLF5457B8AE71516CE",
+  "id": "c093"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Finite Element Analysis",
+  "playlistId": "PLFA5C164D77D3B971",
+  "id": "c094"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Finite Element method for vibration and Stability analyses",
+  "playlistId": "PLbMVogVj5nJT5ExFh0t6hYnyAlHSpbRWV",
+  "id": "c095"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Fluid Mechanics",
+  "playlistId": "PL3F50D04B70A5B935",
+  "id": "c096"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Foundation Engineering",
+  "playlistId": "PLA4019BB0B0CF6518",
+  "id": "c097"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Geosynthetics Engineering: In Theory and Practice",
+  "playlistId": "PLbMVogVj5nJS1KOuK7lTZBg48hBFcLmaY",
+  "id": "c098"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Geosynthetics and Reinforced Soil Structures",
+  "playlistId": "PLbMVogVj5nJRG9ucybzSZgGvkp2Ot0D6q",
+  "id": "c099"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Geotechnical Earthquake Engineering",
+  "playlistId": "PLbMVogVj5nJRNzx4KtSTVj7qr9OxwY3IF",
+  "id": "c100"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Geotechnical Measuements & Explorations",
+  "playlistId": "PLbMVogVj5nJQKiuFOkNiRDF7nHTxtNtmI",
+  "id": "c101"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Ground Improvement Techniques",
+  "playlistId": "PLbMVogVj5nJRb_yA6oMKfoT89hyUcuHIA",
+  "id": "c102"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Ground Water Hydrology",
+  "playlistId": "PLbMVogVj5nJQrSFlE4ZUl-Uu1NQJIDTvm",
+  "id": "c103"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Hydraulics",
+  "playlistId": "PL485F1F6C7083FBE1",
+  "id": "c104"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Introduction to Transportation Engineering",
+  "playlistId": "PLE88643285BC70E0F",
+  "id": "c105"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Mechanics of Solids",
+  "playlistId": "PL4C9BB8DDD5D888A6",
+  "id": "c106"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Modern Construction Materials",
+  "playlistId": "PLbMVogVj5nJQdvb0fm2VMtl4xsmpeufmO",
+  "id": "c107"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Modern Surveying Techniques",
+  "playlistId": "PL8B2E92F1687EC446",
+  "id": "c108"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Numerical Methods in Civil Engineering",
+  "playlistId": "PLbMVogVj5nJQm1Cg-96yKjNyrVIhGJUqZ",
+  "id": "c109"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Prestressed Concrete Structures",
+  "playlistId": "PLB50EF6A79D1F8C14",
+  "id": "c110"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Probability Methods in Civil Engineering",
+  "playlistId": "PLB8D1F86227F088BB",
+  "id": "c111"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Seismic Analysis of Structures",
+  "playlistId": "PLbMVogVj5nJS0YIUNgS_P3KNl9vGNVsob",
+  "id": "c112"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Soil Dynamics",
+  "playlistId": "PLbMVogVj5nJTG8-vXdmotD90Yer7Vk-Mi",
+  "id": "c113"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Soil Mechanics",
+  "playlistId": "PL940DD62E8781E147",
+  "id": "c114"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Stochastic Hydrology",
+  "playlistId": "PLC2E6D572A3227164",
+  "id": "c115"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Stochastic Structural Dynamics",
+  "playlistId": "PL00A249F1ED28FC66",
+  "id": "c116"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Strength of Materials - Prof. S.K.Bhattacharyya",
+  "playlistId": "PL27C4A6AEA552F9E6",
+  "id": "c117"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Structural Analysis II",
+  "playlistId": "PLAE2D920B08D74108",
+  "id": "c118"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Structural Dynamics",
+  "playlistId": "PL0463169721E0D76F",
+  "id": "c119"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Surveying",
+  "playlistId": "PL20A0651466E8A776",
+  "id": "c120"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Transportation Engineering II",
+  "playlistId": "PL05C6EFB31D920568",
+  "id": "c121"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Urban transportation planning",
+  "playlistId": "PLA5B61833B976038C",
+  "id": "c122"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Water & Wastewater Engineering",
+  "playlistId": "PL1BFC82F3A63B4172",
+  "id": "c123"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Water Management",
+  "playlistId": "PLbMVogVj5nJRIPjxn3dPWPwOeKC927qZf",
+  "id": "c124"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Water Resources Engineering",
+  "playlistId": "PL2BD2DA229B513E12",
+  "id": "c125"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Water Resources Systems:Modeling Techniques & Analysis",
+  "playlistId": "PL8C55A67FFF994C2B",
+  "id": "c126"
+ },
+ {
+  "discipline": "Civil Engineering",
+  "title": "Watershed Management",
+  "playlistId": "PLbMVogVj5nJR5Q4bxVz7ps0O5AVQnuLFT",
+  "id": "c127"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Artificial Intelligence",
+  "playlistId": "PLE051420C2068DCB2",
+  "id": "c128"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Artificial Intelligence - Prof. P. Dasgupta",
+  "playlistId": "PL6EE0CD02910E57B8",
+  "id": "c129"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Biometrics",
+  "playlistId": "PLbMVogVj5nJSCwX0N6MAXPsKGWFRI5Y5m",
+  "id": "c130"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Combinatorics",
+  "playlistId": "PLbMVogVj5nJTvqxdydl8wRH_U1dNeVSOV",
+  "id": "c131"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Compiler Design",
+  "playlistId": "PL3690D679B876DE6A",
+  "id": "c132"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Computational Geometry",
+  "playlistId": "PLE1010BEDB031C039",
+  "id": "c133"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Computer Algorithms - 2",
+  "playlistId": "PLbMVogVj5nJTA6ZeVkqHEiUup_3ccdg_C",
+  "id": "c134"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Computer Architecture",
+  "playlistId": "PLbMVogVj5nJRtXgdjQkYfYOHfsc-7Ar7Q",
+  "id": "c135"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Computer Graphics",
+  "playlistId": "PL338D19C40D6D1732",
+  "id": "c136"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Computer Networks",
+  "playlistId": "PL32DBC269EF768F74",
+  "id": "c137"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Computer Organization",
+  "playlistId": "PL1A5A6AE8AFC187B7",
+  "id": "c138"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Cryptography and Network Security",
+  "playlistId": "PL71FE85723FD414D7",
+  "id": "c139"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Data Communication",
+  "playlistId": "PL8BF3052396E05930",
+  "id": "c140"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Data Structures and Algorithms",
+  "playlistId": "PLBF3763AF2E1C572F",
+  "id": "c141"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Database Management System",
+  "playlistId": "PL9426FE14B809CC41",
+  "id": "c142"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Design & Analysis of Algorithms",
+  "playlistId": "PL7DC83C6B3312DF1E",
+  "id": "c143"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Design Verification & Test of Digital VLSI Circuits",
+  "playlistId": "PLbMVogVj5nJTClnafWQ9FK2nt3cGG8kCF",
+  "id": "c144"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Design and Analysis of Algorithms",
+  "playlistId": "PLbMVogVj5nJSUpKllt0btml02Zsc9U1VU",
+  "id": "c145"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Discrete Mathematical Structures",
+  "playlistId": "PL0862D1A947252D20",
+  "id": "c146"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Electronic Design and Automation",
+  "playlistId": "PLBBCE226922E31394",
+  "id": "c147"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Graph Theory",
+  "playlistId": "PL612CE2AB6F38DF9A",
+  "id": "c148"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "High Performance Computer Architecture",
+  "playlistId": "PLbMVogVj5nJQmNqgs7GLBE-HhMi0GQOPW",
+  "id": "c149"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "High Performance Computing",
+  "playlistId": "PL2F82ECDF8BB71B0C",
+  "id": "c150"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "ICT Basics",
+  "playlistId": "PLbMVogVj5nJSduBmvmodjeFjX04_0gMjj",
+  "id": "c151"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Internet Technologies",
+  "playlistId": "PL04D5787E247DC324",
+  "id": "c152"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Internet Technology",
+  "playlistId": "PLbMVogVj5nJSssxplPGgKHZLgdzL5-O88",
+  "id": "c153"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Introduction To Problem Solving & Programming",
+  "playlistId": "PL94CA590D7781A9B9",
+  "id": "c154"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Introduction to Computer Graphics",
+  "playlistId": "PL112A527F83F7A5E4",
+  "id": "c155"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Logic for CS",
+  "playlistId": "PLBD4C7FD29B0C6D0C",
+  "id": "c156"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Low Power VLSI Circuits & Systems",
+  "playlistId": "PLB3F0FC99B5D89571",
+  "id": "c157"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Natural Language Processing",
+  "playlistId": "PLD392E2ACAEF0C689",
+  "id": "c158"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Numerical Optimization",
+  "playlistId": "PL6EA0722B99332589",
+  "id": "c159"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Parallel Algorithm",
+  "playlistId": "PLbMVogVj5nJRB0iSf-k-zv95LA6ExPf6_",
+  "id": "c160"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Parallel Computing",
+  "playlistId": "PLbMVogVj5nJQRvzENlvMKA9q70ScSRZBQ",
+  "id": "c161"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Pattern Recognition",
+  "playlistId": "PLbMVogVj5nJQJMLb2CYw9rry0d5s0TQRp",
+  "id": "c162"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Performance Evaluation of Computer Systems",
+  "playlistId": "PL10481A90D3C5C3E6",
+  "id": "c163"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Principles of Compiler Design",
+  "playlistId": "PLbMVogVj5nJQNjkHZgwuAlfQ9tzmQDxjA",
+  "id": "c164"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Principles of Programming Languages",
+  "playlistId": "PLF7C73918190889CE",
+  "id": "c165"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Programming and Data Structure",
+  "playlistId": "PLD9781AC5EBC9FA16",
+  "id": "c166"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Real-Time Systems",
+  "playlistId": "PLD8F7759A8F75D841",
+  "id": "c167"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Riemann Hypothesis and its Applications",
+  "playlistId": "PLbMVogVj5nJRaBWHpgPX04ndIF2rloGUC",
+  "id": "c168"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Software Engineering",
+  "playlistId": "PL8751DA481F0F0D17",
+  "id": "c169"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Storage Systems",
+  "playlistId": "PLbMVogVj5nJSaAL3dScnPN3AesqFJ4esR",
+  "id": "c170"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "System Analysis and Design",
+  "playlistId": "PLbMVogVj5nJR_EJRzVJ7R9u16crBaAWZd",
+  "id": "c171"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Systems Analysis and Design",
+  "playlistId": "PL4F47209691234D1D",
+  "id": "c172"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Theory of Automata, Formal Languages and Computation",
+  "playlistId": "PL85CF9F4A047C7BF7",
+  "id": "c173"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Theory of Computation",
+  "playlistId": "PLbMVogVj5nJSd25WnSU144ZyGmsqjuKr3",
+  "id": "c174"
+ },
+ {
+  "discipline": "Computer Science and Engineering",
+  "title": "Virtual Reality",
+  "playlistId": "PLbMVogVj5nJSyt80VRXYC-YrAvQuUb6dh",
+  "id": "c175"
+ },
+ {
+  "discipline": "Design",
+  "title": "Ergonomics for beginners: Industrial design",
+  "playlistId": "PL819F5B524B56D0D3",
+  "id": "c176"
+ },
+ {
+  "discipline": "Design",
+  "title": "Ergonomics for beginners: Industrial design perspective",
+  "playlistId": "PLbMVogVj5nJREntIYvXAED0aobgAqruJ2",
+  "id": "c177"
+ },
+ {
+  "discipline": "Design",
+  "title": "Principles of Engineering System Design",
+  "playlistId": "PLbMVogVj5nJTmS6o1I2nr7OIyX0mTjmv1",
+  "id": "c178"
+ },
+ {
+  "discipline": "Design",
+  "title": "Vehicle Dynamics",
+  "playlistId": "PLbMVogVj5nJTW50jj9_gvJmdwFWHaqR5J",
+  "id": "c179"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "ARM Based Development",
+  "playlistId": "PLbMVogVj5nJRDS4w20GO7l4SepLhuAj9X",
+  "id": "c180"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Adaptive Signal Processing",
+  "playlistId": "PLEE3BA3C8CB606B8C",
+  "id": "c181"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Adv. Digital Signal Processing - Multirate and wavelets",
+  "playlistId": "PLbMVogVj5nJRY7X-tMNDHPGdmfZyfHC7J",
+  "id": "c182"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Advanced 3G & 4G Wireless Mobile Communications",
+  "playlistId": "PLbMVogVj5nJSi8FUsvglRxLtN1TN9y4nx",
+  "id": "c183"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Advanced Control Systems",
+  "playlistId": "PLbMVogVj5nJTNkhtkCEKQHhPOr2bpS3za",
+  "id": "c184"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Advanced Electric Drives",
+  "playlistId": "PLA5CA7D35114BA425",
+  "id": "c185"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Advanced Logic Synthesis",
+  "playlistId": "PLbMVogVj5nJQe0_9YJlN9S7ktkA8DI-fL",
+  "id": "c186"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Advanced Optical Communication",
+  "playlistId": "PLbMVogVj5nJQxs7jmzJkGENCYYL-WnP_F",
+  "id": "c187"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Advanced VLSI Design",
+  "playlistId": "PLbMVogVj5nJTDr6KqQXNcxCvooSMnBuXj",
+  "id": "c188"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "An Introduction to Electronics System Packaging",
+  "playlistId": "PLD50A0FB75B98EDA3",
+  "id": "c189"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Analog Circuits",
+  "playlistId": "PLbMVogVj5nJRdd1G38L_8GzxvcW11zMwN",
+  "id": "c190"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Analog Circuits and Systems 1",
+  "playlistId": "PLbMVogVj5nJQDqoiKtMDO1UK33uV-VEE3",
+  "id": "c191"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Analog Electronic Circuits",
+  "playlistId": "PLbMVogVj5nJTZtx8sPWy6J0c00DLRIsdK",
+  "id": "c192"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Analog IC Design",
+  "playlistId": "PLbMVogVj5nJRlMz5diOg9wBizaU6-egJc",
+  "id": "c193"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Analog ICs",
+  "playlistId": "PLAF30A255A53B6E6B",
+  "id": "c194"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Basic Electrical Circuits",
+  "playlistId": "PLbMVogVj5nJRaU59wJO58RA6UOrJTYG5q",
+  "id": "c195"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Basic Electrical Technology",
+  "playlistId": "PL425060D3C78350E1",
+  "id": "c196"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Basic Electronics - Dr.Chitralekha Mahanta",
+  "playlistId": "PL350612601E2DBFDE",
+  "id": "c197"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Broadband Networks",
+  "playlistId": "PL041D7B835EA04014",
+  "id": "c198"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "CMOS Analog VLSI Design",
+  "playlistId": "PLbMVogVj5nJQB44z6h0XO2644Vbv7OM8_",
+  "id": "c199"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Chaos, Fractals and Dynamical Systems",
+  "playlistId": "PL465CF583900B36A3",
+  "id": "c200"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Circuit Theory",
+  "playlistId": "PL1D46B10238154408",
+  "id": "c201"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Circuits for Analog System Design",
+  "playlistId": "PL4C141B35706AD19A",
+  "id": "c202"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Coding Theory",
+  "playlistId": "PL5002EB7306694E7D",
+  "id": "c203"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Communication Engineering",
+  "playlistId": "PL7748E9BEC4ED83CA",
+  "id": "c204"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Control Engineering",
+  "playlistId": "PL7C8BCEB9D5421BD3",
+  "id": "c205"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Control Engineering_Prof. Gopal",
+  "playlistId": "PLA74601484F6994D8",
+  "id": "c206"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Digital Circuits and Systems",
+  "playlistId": "PL803563859BF7ED8C",
+  "id": "c207"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Digital Computer Organization",
+  "playlistId": "PL2DC54ABD5C0221FE",
+  "id": "c208"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Digital Image Processing",
+  "playlistId": "PL1F076D1A98071E24",
+  "id": "c209"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Digital Integrated Circuits",
+  "playlistId": "PL36E832F4CA46D233",
+  "id": "c210"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Digital Signal Processing",
+  "playlistId": "PL4FA894BD6A9586E1",
+  "id": "c211"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Digital Switching",
+  "playlistId": "PLbMVogVj5nJRutRR3plmHxzquc0nKy7Yz",
+  "id": "c212"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Digital System Design",
+  "playlistId": "PLbMVogVj5nJRPNekmFXR0b5U5GgRnYikJ",
+  "id": "c213"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Digital System design with PLDs and FPGAs",
+  "playlistId": "PLbMVogVj5nJSY-1XxFHgwgtj2F7mB7NuV",
+  "id": "c214"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Digital Systems Design",
+  "playlistId": "PL53575D0244F058EB",
+  "id": "c215"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Digital VLSI System Design",
+  "playlistId": "PLD2350A83B752C861",
+  "id": "c216"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Digital Voice and Picture Communication",
+  "playlistId": "PLF8C86C2E163D8E4E",
+  "id": "c217"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Digital communication",
+  "playlistId": "PLbMVogVj5nJSmVwf28pEbVjwUVIf6eyKu",
+  "id": "c218"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Dynamics of Physical System",
+  "playlistId": "PLD074EEC1EBEFAEA5",
+  "id": "c219"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Electrical Machines-I",
+  "playlistId": "PL59861DBF8EC85491",
+  "id": "c220"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Electro Magnetic Fields",
+  "playlistId": "PL1CE5B4FFFA997E5D",
+  "id": "c221"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Electronics For Analog Signal Processing - I",
+  "playlistId": "PL4E1A7D28A90C9B41",
+  "id": "c222"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Electronics For Analog Signal Processing - II",
+  "playlistId": "PL80DBC78FA0498727",
+  "id": "c223"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Embedded Systems",
+  "playlistId": "PL5677C301A37CEF76",
+  "id": "c224"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Embedded software testing",
+  "playlistId": "PLbMVogVj5nJQFYY1KXNd2OBEnJgiyXDZf",
+  "id": "c225"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Energy Resources and Technology",
+  "playlistId": "PLB41970323E7D1E1A",
+  "id": "c226"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Engineering Electromagnetics",
+  "playlistId": "PLbMVogVj5nJQ3bkKkG7qHYSigL1khpM1G",
+  "id": "c227"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Error Correcting Codes",
+  "playlistId": "PL85783E9E7B5F2C0D",
+  "id": "c228"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Estimation of Signals and Systems",
+  "playlistId": "PL44F73876589C58C8",
+  "id": "c229"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Fabrication of Silicon VLSI Circuits using the MOS technology",
+  "playlistId": "PLbMVogVj5nJSkDoV3lpZpZUEnzNIRsDpl",
+  "id": "c230"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "High Speed Devices & Circuit",
+  "playlistId": "PL804EBBC9541F0D5A",
+  "id": "c231"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "High Voltage DC Transmission",
+  "playlistId": "PL4B78E9972172086A",
+  "id": "c232"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Illlumination Engineering",
+  "playlistId": "PL4A675ED47815B333",
+  "id": "c233"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Illumination Engineering",
+  "playlistId": "PLbMVogVj5nJThs8VThC-DA8CZYsmaQypX",
+  "id": "c234"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Industrial Automation and Control",
+  "playlistId": "PLE8F9BF5CB1201D23",
+  "id": "c235"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Industrial Drives - Power Electronics",
+  "playlistId": "PLED1B6C0DE8A84B6E",
+  "id": "c236"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Industrial Instrumentation",
+  "playlistId": "PLC7B26029C4E955FA",
+  "id": "c237"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Information Theory and Coding",
+  "playlistId": "PL2E3F2883347BB45B",
+  "id": "c238"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Intelligent Systems and Control",
+  "playlistId": "PL080F1A848428C3FD",
+  "id": "c239"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Introduction to Electronic Circuits",
+  "playlistId": "PLbMVogVj5nJSNQjPsqYnPFfroE1coxysA",
+  "id": "c240"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Linux Programming & Scripting",
+  "playlistId": "PLbMVogVj5nJRa3VKt_eyZdJ_DitCz1cvQ",
+  "id": "c241"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "MEMS & Microsystems",
+  "playlistId": "PL5873EDBDFB69BAD8",
+  "id": "c242"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Modelling and Analysis of Electric Machines",
+  "playlistId": "PLbMVogVj5nJQBG9363J1uq5Fnq4m1yGXL",
+  "id": "c243"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Nanoelectronics: Devices and Materials",
+  "playlistId": "PLbMVogVj5nJT8RG5Q4CpsJXiGqXE6t8N1",
+  "id": "c244"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Networks and Systems",
+  "playlistId": "PLB0226234D8AEFB72",
+  "id": "c245"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Networks, Signals and Systems",
+  "playlistId": "PL4CCD04A3442AB2AF",
+  "id": "c246"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Neural Networks and Applications",
+  "playlistId": "PL3EA65335EAC29EE8",
+  "id": "c247"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Nonlinear Dynamical Systems",
+  "playlistId": "PLbMVogVj5nJTWGLf42BxjQW7wlje4203y",
+  "id": "c248"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Optimal Control",
+  "playlistId": "PLbMVogVj5nJQNzJT6sYZpB7H1G6WF0FZ4",
+  "id": "c249"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Pattern Recognition",
+  "playlistId": "PLbMVogVj5nJQfv6lksIDSBi0gnu1bi50e",
+  "id": "c250"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Pattern Recognition and Application",
+  "playlistId": "PLbMVogVj5nJRo8Sd9o6R-vE21Goqb2qXL",
+  "id": "c251"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Power Electronics",
+  "playlistId": "PLA07ACBDE053A8229",
+  "id": "c252"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Power Electronics and Distributed Generation",
+  "playlistId": "PLbMVogVj5nJTAcW3-MnF47B7VuNzbsMzb",
+  "id": "c253"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Power System Analysis",
+  "playlistId": "PL36A60B630E8C7B56",
+  "id": "c254"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Power System Dynamics",
+  "playlistId": "PL2FE1841A440DE2F8",
+  "id": "c255"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Power System Dynamics and Control",
+  "playlistId": "PLbMVogVj5nJSpZNZyDAzMm91RbCQRd2rK",
+  "id": "c256"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Power System Generation, Transmission and Distribution (Encapsulated from earlier Video)",
+  "playlistId": "PLD4ED2FAF3C155625",
+  "id": "c257"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Power Systems Operations and Control",
+  "playlistId": "PL4BFB13CCDB954BCF",
+  "id": "c258"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Probability & Random Variables",
+  "playlistId": "PLD85E88483F782338",
+  "id": "c259"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Probability Foundation for Electrical Engineers",
+  "playlistId": "PLbMVogVj5nJQqGHrpAloTec_lOKsG-foc",
+  "id": "c260"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Pulse width Modulation for Power Electronic Converters",
+  "playlistId": "PLbMVogVj5nJQoZqyLxx-cg_dYE-Dt2UMH",
+  "id": "c261"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "RF Integrated Circuits",
+  "playlistId": "PLbMVogVj5nJQdGDSx243YPnNeLMBrhNE8",
+  "id": "c262"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Semiconductor Device Modeling",
+  "playlistId": "PLbMVogVj5nJSqDpNX98GttEel31r8-R-o",
+  "id": "c263"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Signals and System",
+  "playlistId": "PL75A2863DF4CE1CE6",
+  "id": "c264"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Signals and Systems",
+  "playlistId": "PLbMVogVj5nJQQZbah2uRZIRZ_9kfoqZyx",
+  "id": "c265"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Solid State Devices",
+  "playlistId": "PLF178600D851B098F",
+  "id": "c266"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Switched Mode Power Conversion",
+  "playlistId": "PLbMVogVj5nJRY--U9E7dvmqgB9RhGuymk",
+  "id": "c267"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Transmission Lines and EM Waves",
+  "playlistId": "PL0925FD10648D664E",
+  "id": "c268"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "VLSI Data Conversion Circuits",
+  "playlistId": "PL2135D8A0F7441AE1",
+  "id": "c269"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "VLSI Design",
+  "playlistId": "PL018645397D9487AF",
+  "id": "c270"
+ },
+ {
+  "discipline": "Electrical and Electronics Engineering",
+  "title": "Wireless Communication",
+  "playlistId": "PL33AB52ED9A7873C0",
+  "id": "c271"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Better Spoken English",
+  "playlistId": "PLbMVogVj5nJT3a24lj4KOkQCOElxcDQrs",
+  "id": "c272"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Communication Skills",
+  "playlistId": "PLbMVogVj5nJSZB8BV29_sPwwkzMTYXpaH",
+  "id": "c273"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Contemporary Issues in Philosophy of Mind & Cognition",
+  "playlistId": "PLbMVogVj5nJQNic4CtnJprkHsQE4jj3M8",
+  "id": "c274"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Contemporary Literature",
+  "playlistId": "PLE61D1F6F620DDE0F",
+  "id": "c275"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Cultural Studies",
+  "playlistId": "PLbMVogVj5nJRF1Envz3MSfxIT3rLe5Ds7",
+  "id": "c276"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "English Language and Literature",
+  "playlistId": "PLbMVogVj5nJSrNC8yTkDpzu5uRzX5re9q",
+  "id": "c277"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Ethics",
+  "playlistId": "PLbMVogVj5nJQ20ZixllzM69agBq-m8ndV",
+  "id": "c278"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Game Theory and Economics",
+  "playlistId": "PLB60A6F21AFA2B42B",
+  "id": "c279"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "History of Economic Theory",
+  "playlistId": "PL4DA27EFD739CAE15",
+  "id": "c280"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Human Adjustment Processes",
+  "playlistId": "PLbMVogVj5nJRn4NV2Dty-CxB2coBPnIE5",
+  "id": "c281"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "India's Ayurvedic Inheritance",
+  "playlistId": "PLbMVogVj5nJQABzdvvR87AVlWJ4063cR2",
+  "id": "c282"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Indian Philosophy",
+  "playlistId": "PLbMVogVj5nJQ2peNt_XPOq0qtLR5NMv4R",
+  "id": "c283"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "International Economics",
+  "playlistId": "PLbMVogVj5nJSX5371tiQd1zK5Q3ahqieg",
+  "id": "c284"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Introduction to Film Studies",
+  "playlistId": "PLbMVogVj5nJQsaj5p_MRYLGhUtmpaEDB0",
+  "id": "c285"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Introduction to Japanese Language and Culture",
+  "playlistId": "PLbMVogVj5nJRmUlVaKDlcYHdecA_WFLVv",
+  "id": "c286"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Introduction to Logic",
+  "playlistId": "PLbMVogVj5nJS1F-yeDwn16nsuYrpSYzaO",
+  "id": "c287"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Introduction to Modern Linguistics",
+  "playlistId": "PLbMVogVj5nJSEQYH2dVtcXN9I4n8hF0VY",
+  "id": "c288"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Introductory Sociology",
+  "playlistId": "PLbMVogVj5nJR94vAUYzC_V6pZhMwlTnSa",
+  "id": "c289"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Money & Banking",
+  "playlistId": "PLbMVogVj5nJTh31e8vqn8bEvIcT_a-FrY",
+  "id": "c290"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Population and Society",
+  "playlistId": "PLFDF2FEE66B9C1FD8",
+  "id": "c291"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Principles and Parameters in Natural Language",
+  "playlistId": "PLbMVogVj5nJSKnOPq_u1OBhJAHPkiVgy9",
+  "id": "c292"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Selected Topics in Psychology",
+  "playlistId": "PLbMVogVj5nJTkg7CN-d_rwRoM7NzX3dTf",
+  "id": "c293"
+ },
+ {
+  "discipline": "Humanities and Social Sciences",
+  "title": "Understanding Creativity and Creative Writing",
+  "playlistId": "PLbMVogVj5nJS5JocmFzpy0ATr5bjxg6lN",
+  "id": "c294"
+ },
+ {
+  "discipline": "Management",
+  "title": "Applied Multivariate Statistical Modeling",
+  "playlistId": "PLbMVogVj5nJRt-ZxRG1KRjxNoy7J_IaW2",
+  "id": "c295"
+ },
+ {
+  "discipline": "Management",
+  "title": "Business Analysis for Engineers",
+  "playlistId": "PLbMVogVj5nJTG7ahmEJc4MlcGT0hCr5ik",
+  "id": "c296"
+ },
+ {
+  "discipline": "Management",
+  "title": "Consumer Behaviour",
+  "playlistId": "PLbMVogVj5nJTo1na559Me_hdk_gvp9HT0",
+  "id": "c297"
+ },
+ {
+  "discipline": "Management",
+  "title": "Econometric Modelling",
+  "playlistId": "PLABBE3EC0B7E2130D",
+  "id": "c298"
+ },
+ {
+  "discipline": "Management",
+  "title": "Global Supply Chain Management",
+  "playlistId": "PLbMVogVj5nJSF8ldMqvP905muWlo1r7L2",
+  "id": "c299"
+ },
+ {
+  "discipline": "Management",
+  "title": "Infrastructure Finance",
+  "playlistId": "PLbMVogVj5nJTo8gUWOTNTh2Xw6CJqLM2n",
+  "id": "c300"
+ },
+ {
+  "discipline": "Management",
+  "title": "International Finance",
+  "playlistId": "PLbMVogVj5nJTo4HvMx6OevSLEWJqFyJOf",
+  "id": "c301"
+ },
+ {
+  "discipline": "Management",
+  "title": "Managerial Accounting",
+  "playlistId": "PLbMVogVj5nJT-3_cO6KRCY6cwCYoZzOnl",
+  "id": "c302"
+ },
+ {
+  "discipline": "Management",
+  "title": "Managerial Economics",
+  "playlistId": "PLbMVogVj5nJRTAVF4-tueujAFiLKIV3Mo",
+  "id": "c303"
+ },
+ {
+  "discipline": "Management",
+  "title": "Manufacturing Systems Management",
+  "playlistId": "PLbMVogVj5nJRgp6EHVTtE_mVAHaT08esi",
+  "id": "c304"
+ },
+ {
+  "discipline": "Management",
+  "title": "Operations and Supply Chain Management",
+  "playlistId": "PL040D2F9406691BE6",
+  "id": "c305"
+ },
+ {
+  "discipline": "Management",
+  "title": "Organisation of Engineering Systems and Human Resources Management",
+  "playlistId": "PLbMVogVj5nJRWRZfcWWlxFZwGJVD6N7p8",
+  "id": "c306"
+ },
+ {
+  "discipline": "Management",
+  "title": "Organization Management",
+  "playlistId": "PLCD408E74E6E853F3",
+  "id": "c307"
+ },
+ {
+  "discipline": "Management",
+  "title": "Organizational Behaviour",
+  "playlistId": "PLbMVogVj5nJQYXoO3foSZ6CrU7aCCwTsb",
+  "id": "c308"
+ },
+ {
+  "discipline": "Management",
+  "title": "Security Analysis and Portfolio Management",
+  "playlistId": "PLEC357A2BC142F57E",
+  "id": "c309"
+ },
+ {
+  "discipline": "Management",
+  "title": "Six Sigma",
+  "playlistId": "PL8F39D0611CB7BD3B",
+  "id": "c310"
+ },
+ {
+  "discipline": "Management",
+  "title": "Strategic Management",
+  "playlistId": "PL1C1BA88BD78AE49A",
+  "id": "c311"
+ },
+ {
+  "discipline": "Management",
+  "title": "Strategic Marketing - Contemporary Issues",
+  "playlistId": "PLbMVogVj5nJRLj4IAD-qinMIQ_SiMUWfn",
+  "id": "c312"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "A Basic Course in Real Analysis",
+  "playlistId": "PLbMVogVj5nJQ1UXrOm7KqTg9UKk6eXRp_",
+  "id": "c313"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Advanced Complex Analysis - Part 1",
+  "playlistId": "PLbMVogVj5nJTLfYTwvct_SlLaxv1b50Vk",
+  "id": "c314"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Advanced Complex Analysis - Part 2",
+  "playlistId": "PLbMVogVj5nJTSPDysVOzVPd0N1AHYqUhH",
+  "id": "c315"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Advanced Engineering Mathematics",
+  "playlistId": "PLbMVogVj5nJSgrtwLEfYZIlrglCXYxgdo",
+  "id": "c316"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Advanced Matrix Theory and Linear Algebra for Engineers",
+  "playlistId": "PL05CD03A43A56AE66",
+  "id": "c317"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "An Introduction to Riemann Surfaces and Algebraic Curves: Complex 1-Tori and Elliptic Curves",
+  "playlistId": "PLbMVogVj5nJSm4256vuITlsovUT1xVkUL",
+  "id": "c318"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Applied Multivariate Analysis",
+  "playlistId": "PL3DFCC23FCE3C7EFB",
+  "id": "c319"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Basic Algebraic Geometry : Varieties, Morphisms, Local Rings, Function Fields and Nonsingularity",
+  "playlistId": "PLbMVogVj5nJSNj24jdPGivlJtxbxua2by",
+  "id": "c320"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Calculus of Variations and Integral Equations",
+  "playlistId": "PL521C2DFD15FF568C",
+  "id": "c321"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Complex Analysis",
+  "playlistId": "PLbMVogVj5nJS_i8vfVWJG16mPcoEKMuWT",
+  "id": "c322"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Convex Optimization",
+  "playlistId": "PLbMVogVj5nJQHFqfiSdgaLCCWvDcm1W4l",
+  "id": "c323"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Discrete Mathematics",
+  "playlistId": "PLbMVogVj5nJQ-tIzyygzzLLxomzlbIiE4",
+  "id": "c324"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Dynamic Data Assimilation",
+  "playlistId": "PLbMVogVj5nJSlrH7FECej1_aS2RXj_9S3",
+  "id": "c325"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Elementary Numerical Analysis",
+  "playlistId": "PLbMVogVj5nJTtsC5V9n452YKc4mJAhrmm",
+  "id": "c326"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Formal Languages and Automata Theory",
+  "playlistId": "PLbMVogVj5nJSMghTc2Qu0tk-lwY4ui7iY",
+  "id": "c327"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Foundations of Optimization",
+  "playlistId": "PLbMVogVj5nJRRbofh3Qm3P6_NVyevDGD_",
+  "id": "c328"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Functional Analysis",
+  "playlistId": "PL5022A32B9BCFE3E4",
+  "id": "c329"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Linear Algebra",
+  "playlistId": "PLbMVogVj5nJQ2vsW_hmyvVfO4GYWaaPp7",
+  "id": "c330"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Linear programming and Extensions",
+  "playlistId": "PL50F86BDF6873CED9",
+  "id": "c331"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Mathematical Logic",
+  "playlistId": "PL2EB5662A0D455A81",
+  "id": "c332"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Mathematics I",
+  "playlistId": "PLbMVogVj5nJTEKLskRzwSJeD4KqXIWAbu",
+  "id": "c333"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Mathematics in India - From Vedic Period to Modern Times",
+  "playlistId": "PLbMVogVj5nJThf31TNSQzuN7zqxe7HdRN",
+  "id": "c334"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Matrix Theory",
+  "playlistId": "PLbMVogVj5nJQnzk6Sn9o6RTpu4Evx0LOT",
+  "id": "c335"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Measure and Integration",
+  "playlistId": "PLbMVogVj5nJTsl6c-UDL1luTVMT8v_RLQ",
+  "id": "c336"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Numerical methods of Ordinary and Partial",
+  "playlistId": "PLbMVogVj5nJRILpJJO7KrZa8Ttj4_ZAgl",
+  "id": "c337"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Optimization",
+  "playlistId": "PLbMVogVj5nJT8iTaUR8FoWBuJy0vs-Z3C",
+  "id": "c338"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Ordinary Differential Equations and Applications",
+  "playlistId": "PLbMVogVj5nJSGlf9sluucwobyr_zz6glD",
+  "id": "c339"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Probability Theory and Applications",
+  "playlistId": "PLbMVogVj5nJQWowhOG0-K-yI-bwRRmm3C",
+  "id": "c340"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Probability and Statistics",
+  "playlistId": "PLbMVogVj5nJQrzbAweTVvnH6-vG5A4aN5",
+  "id": "c341"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Real Analysis",
+  "playlistId": "PLbMVogVj5nJSxFihV-ec4A3z_FOGPRCo-",
+  "id": "c342"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Regression Analysis",
+  "playlistId": "PLbMVogVj5nJSpj5sl-8tdKARg1lw2wEa-",
+  "id": "c343"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Statistical Inference",
+  "playlistId": "PLbMVogVj5nJRkNUH5v9qNEJvW7r2A7rEY",
+  "id": "c344"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Statistical Methods for Scientists and Engineers",
+  "playlistId": "PLbMVogVj5nJTwfajxAvmxttpDktlmMDp_",
+  "id": "c345"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Stochastic Processes",
+  "playlistId": "PLbMVogVj5nJSdK0QYFHb-dNHwMstca4OM",
+  "id": "c346"
+ },
+ {
+  "discipline": "Mathematics",
+  "title": "Topology",
+  "playlistId": "PLbMVogVj5nJRR7zYZifYopb52zjoScx1d",
+  "id": "c347"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Acoustics",
+  "playlistId": "PLbMVogVj5nJQrasNkW2XBmOX8gq_UZ_Qv",
+  "id": "c348"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Advanced Finite Elements Analysis",
+  "playlistId": "PLE3449F56F084DE22",
+  "id": "c349"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Advanced Gas Dynamics",
+  "playlistId": "PLF1779EDE134553BB",
+  "id": "c350"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Advanced Machining Processes",
+  "playlistId": "PLB8BC0AB0AD5DA4E2",
+  "id": "c351"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Advanced Manufacturing Processes",
+  "playlistId": "PLbMVogVj5nJSzoQXmu7dsj9ZKJyZ1P4O8",
+  "id": "c352"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Advanced Materials and Processes",
+  "playlistId": "PL716BC63A7418B310",
+  "id": "c353"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Advanced Operations Research",
+  "playlistId": "PL004010FEA702502F",
+  "id": "c354"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Advanced Strength of Materials",
+  "playlistId": "PL35EBF66D99E7A0EC",
+  "id": "c355"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Advanced manufacturing process for micro system fabrication",
+  "playlistId": "PLbMVogVj5nJSC_ZwkvUv15g6lYrNNMI9M",
+  "id": "c356"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "An Introduction to Explosions and Explosion Safety",
+  "playlistId": "PLbMVogVj5nJQNDD0LDbrX80ELV9MmGkgp",
+  "id": "c357"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Basic Thermodynamics",
+  "playlistId": "PLD8E646BAB3366BC8",
+  "id": "c358"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Biomicroelectromechanical systems",
+  "playlistId": "PL39706EA3A5098D63",
+  "id": "c359"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Computational Fluid Dynamics",
+  "playlistId": "PL8EAF844326CBB2E3",
+  "id": "c360"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Computer Aided Design",
+  "playlistId": "PLC3EE33F27CF14A06",
+  "id": "c361"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Computer Aided Engineering Design",
+  "playlistId": "PL1F857AA89C464B15",
+  "id": "c362"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Conduction and Radiation",
+  "playlistId": "PL42D75EB85932E7D3",
+  "id": "c363"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Convective Heat Transfer",
+  "playlistId": "PLbMVogVj5nJSIHv8a9juUQ5_rZNKiyyfH",
+  "id": "c364"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Convective Heat and Mass Transfer",
+  "playlistId": "PLbMVogVj5nJQ1egblJLMA1gbHs3DYT2uo",
+  "id": "c365"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Cryogenic Engineering",
+  "playlistId": "PLbMVogVj5nJTvV6PaBMpvjBwfT4FzqcN8",
+  "id": "c366"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Design and Optimization of Energy Systems",
+  "playlistId": "PLBE92469895618E50",
+  "id": "c367"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Design of Machine Elements",
+  "playlistId": "PL3D4EECEFAA99D9BE",
+  "id": "c368"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Dynamics of Machines",
+  "playlistId": "PL46AAEDA6ABAFCA78",
+  "id": "c369"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Engineering Drawing",
+  "playlistId": "PLbMVogVj5nJRgBjyxu0PfH3Ucdq_mDo4o",
+  "id": "c370"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Engineering Fracture Mechanics",
+  "playlistId": "PLA218B83235A4AD5C",
+  "id": "c371"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Engineering Mechanics - Dr.G.Saravana Kumar",
+  "playlistId": "PLB85BDFBE784BFEB6",
+  "id": "c372"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Experimental Stress Analysis",
+  "playlistId": "PL21BB25670CDC2AEB",
+  "id": "c373"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Finite Element Method",
+  "playlistId": "PLA4CBD0C55B9C3878",
+  "id": "c374"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Fluid Mechanics",
+  "playlistId": "PLbMVogVj5nJTZJHsH6uLCO00I-ffGyBEm",
+  "id": "c375"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Fundamentals of Industrial Oil Hydraulics and Pneumatics",
+  "playlistId": "PLbMVogVj5nJTKwm1WjlutrAEZrLE995Ja",
+  "id": "c376"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Fundamentals of Operations Research",
+  "playlistId": "PL05350A31E6C09B7A",
+  "id": "c377"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Gas Dynamics and Propulsion",
+  "playlistId": "PLbMVogVj5nJR0Vt9CLGK7ck2yrS1zQjMo",
+  "id": "c378"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Heat and Mass Transfer",
+  "playlistId": "PL5F4F46C1983C6785",
+  "id": "c379"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Industrial Engineering",
+  "playlistId": "PL299B5CC87110A6E7",
+  "id": "c380"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Introduction to Atmospheric Science",
+  "playlistId": "PLbMVogVj5nJTpaQac9q0OjT4x41yjXkdu",
+  "id": "c381"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Introduction to Finite Element Method",
+  "playlistId": "PLbMVogVj5nJRjnZA9oryBmDdUNe7lbnB0",
+  "id": "c382"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Introduction to Fluid Machines and Compressible Flow",
+  "playlistId": "PLbMVogVj5nJSurQymuzzJM9MwLpEb75lq",
+  "id": "c383"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Introduction to Fluid Mechanics and Fluid Engineering",
+  "playlistId": "PLbMVogVj5nJQEgL1sHuY24d6omOqXInnt",
+  "id": "c384"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Kinematics of Machines",
+  "playlistId": "PLBEA57F7E7560C8E8",
+  "id": "c385"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Machinery fault diagnosis and signal processing",
+  "playlistId": "PLbMVogVj5nJQBOIBP4eAQSqkFvZ9vDuSb",
+  "id": "c386"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Manufacturing Processes - I",
+  "playlistId": "PLACB124F79F677B6A",
+  "id": "c387"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Manufacturing Processes II",
+  "playlistId": "PL82E9A8429ED7BB27",
+  "id": "c388"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Mathematical Methods in Engineering and Science",
+  "playlistId": "PLbMVogVj5nJS8RAFlq929YCeCk5ITz9Fs",
+  "id": "c389"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Mechanical Engineering - Prof. Sadashivappa",
+  "playlistId": "PLbMVogVj5nJSZiwuh_tp50dKry8mCxzKA",
+  "id": "c390"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Mechanical Measurements and Metrology",
+  "playlistId": "PL41FA714195562989",
+  "id": "c391"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Mechanical Vibrations",
+  "playlistId": "PLAC668A0566953FB5",
+  "id": "c392"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Metal Casting",
+  "playlistId": "PLbMVogVj5nJQiWQqMSFeatZ7fWmjQwNgc",
+  "id": "c393"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Micro and Smart Systems",
+  "playlistId": "PLbMVogVj5nJSw6pU8aKJSvwetHfhRgxva",
+  "id": "c394"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Micro fluidics",
+  "playlistId": "PLbMVogVj5nJQgcqvLXG7YxzemeKEBlVRd",
+  "id": "c395"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Microfluidics",
+  "playlistId": "PLbMVogVj5nJTzzBpZgmCsGV6kTPrUrGdG",
+  "id": "c396"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Nonlinear Vibration",
+  "playlistId": "PLbMVogVj5nJSjU9TQ8hnRt0o1anUGcnrQ",
+  "id": "c397"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Principles of Mechanical Measurements",
+  "playlistId": "PLC4053D34F565AEB6",
+  "id": "c398"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Processing of non metals",
+  "playlistId": "PLbMVogVj5nJSrjJ2N8mwXfdS0eoaw6lZS",
+  "id": "c399"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Project and Production Management",
+  "playlistId": "PLB4BC2E831048362F",
+  "id": "c400"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Refrigeration and Airconditioning",
+  "playlistId": "PLE2DA184A2E479885",
+  "id": "c401"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Robotics",
+  "playlistId": "PL2A735F42FA18D5DD",
+  "id": "c402"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Rocket Propulsion",
+  "playlistId": "PL99EA5ECCC34949DB",
+  "id": "c403"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Solar Energy Technology",
+  "playlistId": "PLbMVogVj5nJTAW6mqiozHsjDGfkKJvNxo",
+  "id": "c404"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Spray Theory and Applications",
+  "playlistId": "PLbMVogVj5nJQYeYMFfvGspOjwNusfFgv1",
+  "id": "c405"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Strength of Materials",
+  "playlistId": "PL521D094C8752CE67",
+  "id": "c406"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Technology of Surface Coating",
+  "playlistId": "PLbMVogVj5nJTnVBY4n36KHSPJsPDy38QS",
+  "id": "c407"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Theory & Practice of Rotor Dynamics",
+  "playlistId": "PLbMVogVj5nJQuAmYkqn_qpAK1fOpmcT5j",
+  "id": "c408"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Tribology",
+  "playlistId": "PLbMVogVj5nJRCfyN1QEiBsNFek8d00kWw",
+  "id": "c409"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Vibration control",
+  "playlistId": "PLbMVogVj5nJQXSOgNkmP2kLM9m7BUQIUK",
+  "id": "c410"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Vibration of Structures",
+  "playlistId": "PLbMVogVj5nJTNlrJylW9den5nuoWbpNX6",
+  "id": "c411"
+ },
+ {
+  "discipline": "Mechanical Engineering",
+  "title": "Welding Engineering",
+  "playlistId": "PLbMVogVj5nJSjLB85-HKhw1aCIBxn3pWj",
+  "id": "c412"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Advanced Characterization Techniques",
+  "playlistId": "PLbMVogVj5nJTHuWr9HO1Uns1g8IBeyFFa",
+  "id": "c413"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Advanced Metallurgical Thermodynamics",
+  "playlistId": "PLbMVogVj5nJS_jlBSbduzYmy6YX_K4KyM",
+  "id": "c414"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Advanced ceramics for strategic applications",
+  "playlistId": "PLbMVogVj5nJSAZWiwGdkclf9nPPi7j91c",
+  "id": "c415"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Electroceramics",
+  "playlistId": "PL675BE95AEF6A3A14",
+  "id": "c416"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Electronic materials, devices, and fabrication",
+  "playlistId": "PLbMVogVj5nJTqQc4Takon3QAhrtOLBV4M",
+  "id": "c417"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Environmental Degradation of Materials",
+  "playlistId": "PLbMVogVj5nJRb1Hukxce_fNcQ5D74Pn91",
+  "id": "c418"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Fuels Refractory and Furnaces",
+  "playlistId": "PLC1A15E0C6761937F",
+  "id": "c419"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Fundamentals of electronic materials and devices",
+  "playlistId": "PLbMVogVj5nJRleQY-lYFPnFs1Ki9MDrWw",
+  "id": "c420"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Introduction to Biomaterials",
+  "playlistId": "PLF051FCC12CB73ADC",
+  "id": "c421"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Materials Characterization",
+  "playlistId": "PLbMVogVj5nJRbajyOAp_GHxTW9tQEqd0W",
+  "id": "c422"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Materials and Energy Balance",
+  "playlistId": "PL18DF0AEFCD1784E9",
+  "id": "c423"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Non-ferrous Extractive Metallurgy",
+  "playlistId": "PLC3F0FC4543ADAC48",
+  "id": "c424"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Optoelectronic Materials and Devices",
+  "playlistId": "PLbMVogVj5nJQbjE_u2KZhUmCypfLunjG4",
+  "id": "c425"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Physics of Materials",
+  "playlistId": "PL090DAFDD7A36E27B",
+  "id": "c426"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Principles of Physical Metallurgy",
+  "playlistId": "PLbMVogVj5nJSkVfiNz6f9HeghkYD5u3c0",
+  "id": "c427"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Processing of Semiconducting Materials",
+  "playlistId": "PLbMVogVj5nJQkfpFZruN4zT87Yrc4pOkR",
+  "id": "c428"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Science and Technology of Polymers",
+  "playlistId": "PL1AFB213453E37EC3",
+  "id": "c429"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Steel Making",
+  "playlistId": "PL9A090CB69EA83224",
+  "id": "c430"
+ },
+ {
+  "discipline": "Metallurgical and Materials Engineering",
+  "title": "Structure of Materials",
+  "playlistId": "PLbMVogVj5nJQ5jqiXDYuE6ETz5F5Kn4dA",
+  "id": "c431"
+ },
+ {
+  "discipline": "Mining Engineering",
+  "title": "Fundamentals of Environmental Pollution and Control",
+  "playlistId": "PL9108F6C4E154885A",
+  "id": "c432"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Applied Mechanics",
+  "playlistId": "PLC3A601B6060658D3",
+  "id": "c433"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Applied Thermodynamics",
+  "playlistId": "PLbMVogVj5nJRgXRZ0xEoBfWELmSo6JvvZ",
+  "id": "c434"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Artificial Intelligence Search Methods For Problem Solving",
+  "playlistId": "PLbMVogVj5nJSFZoiF6RDqyz_m6Srjx_MY",
+  "id": "c435"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Basic Electronics - Prof T.S.Natarajan",
+  "playlistId": "PL7987F30C41A9ADCB",
+  "id": "c436"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Biochemistry I",
+  "playlistId": "PL06FB41A69C7D618D",
+  "id": "c437"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Classical Physics",
+  "playlistId": "PL5E4E56893588CBA8",
+  "id": "c438"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Concept & Evolution of Management thought",
+  "playlistId": "PL70626B93401271C5",
+  "id": "c439"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Economics / Management / Entrepreneurhip",
+  "playlistId": "PLbMVogVj5nJQvI5DfceP_JX1WKXVtHnxa",
+  "id": "c440"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Engineering Chemistry 1",
+  "playlistId": "PLEF394C3A35DE8BC7",
+  "id": "c441"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Engineering Fracture Mechanics",
+  "playlistId": "PLbMVogVj5nJTTGvVQL5ks-woI_vqDTKXF",
+  "id": "c442"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Engineering Mechanics",
+  "playlistId": "PL84B277E20A2617DC",
+  "id": "c443"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Engineering Physics I",
+  "playlistId": "PLbMVogVj5nJQgjnHCN9L4QkINYOQomSOd",
+  "id": "c444"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Engineering Physics II",
+  "playlistId": "PL1E2F2458D8425570",
+  "id": "c445"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Engineering Thermodynamics",
+  "playlistId": "PLbMVogVj5nJRL8ZVcaoXG_Bbw2G3NX5N9",
+  "id": "c446"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Fundamentals of X-ray diffraction and Transmission electron microscopy",
+  "playlistId": "PLbMVogVj5nJQ6Boh648vVQXl-bRQ3rlpJ",
+  "id": "c447"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Geosynthetics and Reinforced Soil Structures",
+  "playlistId": "PLbMVogVj5nJTV7DoD2ZVznqqHsfFop1gU",
+  "id": "c448"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Human Resource Management-I",
+  "playlistId": "PL2FC06CE7BB3D8BC6",
+  "id": "c449"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Introduction to Synthetic Biology",
+  "playlistId": "PLbMVogVj5nJS3OjdZtJNfBFrI96SlyILW",
+  "id": "c450"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Introduction to Turbomachines",
+  "playlistId": "PLbMVogVj5nJQQp3QLuzbcHrt0XncZZTiE",
+  "id": "c451"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Leadership",
+  "playlistId": "PLAC5BFC6079BCCC12",
+  "id": "c452"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Management Information System",
+  "playlistId": "PLE04B26C87FB0C0C6",
+  "id": "c453"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Management Science",
+  "playlistId": "PLAABCA439BF7EA3CC",
+  "id": "c454"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Materials Science",
+  "playlistId": "PLA7DE84EFB0E7860B",
+  "id": "c455"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Mathematics",
+  "playlistId": "PL3A87B93CB9912EC1",
+  "id": "c456"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Mathematics - II",
+  "playlistId": "PLDBD58EC94ED8697F",
+  "id": "c457"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Mathematics - III",
+  "playlistId": "PL7A8749D363875113",
+  "id": "c458"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Nano structured materials-synthesis, properties, self assembly and applications",
+  "playlistId": "PLbMVogVj5nJTdeiLvuGSB_AE8hloTAHWJ",
+  "id": "c459"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Nanostructures and Nanomaterials: Characterization and Properties",
+  "playlistId": "PLbMVogVj5nJSl_2XmFjuRmvuAgCOZXUjv",
+  "id": "c460"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Numerical Methods and Computation",
+  "playlistId": "PL6E313980EF23CA6E",
+  "id": "c461"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Numerical Methods and Programing",
+  "playlistId": "PLCA944605A8EDE42A",
+  "id": "c462"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Physics I - Oscillations and Waves",
+  "playlistId": "PL30D1917C52D9F9B9",
+  "id": "c463"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Power System Dynamics and Control",
+  "playlistId": "PLbMVogVj5nJS9tr6ZWFKALsPGQ44UcWhH",
+  "id": "c464"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Probability and Statistics",
+  "playlistId": "PL6C92B335BD4238AB",
+  "id": "c465"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Quantum Mechanics and Applications",
+  "playlistId": "PL1955A15B7F282A7F",
+  "id": "c466"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Quantum Physics",
+  "playlistId": "PL0F530F3BAF8C6FCC",
+  "id": "c467"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Radiation Heat Transfer",
+  "playlistId": "PLbMVogVj5nJRRoRAkT1aFHiE4yD6Vsfom",
+  "id": "c468"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Semiconductor Device Modeling",
+  "playlistId": "PLbMVogVj5nJQ2k2HAGHFENB4a2nI8OppN",
+  "id": "c469"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "Strategic Management",
+  "playlistId": "PL03A70BC250C931F0",
+  "id": "c470"
+ },
+ {
+  "discipline": "Multidisciplinary",
+  "title": "The monsoon and its variability",
+  "playlistId": "PLbMVogVj5nJTCwOA7et3mn4o_g_Sx9adQ",
+  "id": "c471"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Advanced Marine Structures",
+  "playlistId": "PLbMVogVj5nJSXvgBXheznSTiStM1x7ROn",
+  "id": "c472"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Applied Thermodynamics for Marine Systems",
+  "playlistId": "PL6F80A607A9B85AB3",
+  "id": "c473"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Coastal Engineering",
+  "playlistId": "PLbMVogVj5nJTirggwW73R_PPtqi4VRzxm",
+  "id": "c474"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Design of Offshore Structures",
+  "playlistId": "PLbMVogVj5nJS3htQZwqRTRIDTyvzOA5gH",
+  "id": "c475"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Dynamics of Ocean Structures",
+  "playlistId": "PLbMVogVj5nJQtSDMxxWs8uf4PN-OW6fgP",
+  "id": "c476"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Elements of Ocean Engineering",
+  "playlistId": "PL7A4EDABDF0D5345C",
+  "id": "c477"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Foundation for Offshore Structures",
+  "playlistId": "PLbMVogVj5nJT-oW0s5glih07gVVUeWjGd",
+  "id": "c478"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Health,Safety and Environmental Management in Petroleum and Offshore Engineering",
+  "playlistId": "PLbMVogVj5nJTKcMfWNwQfPkT014KEJAzE",
+  "id": "c479"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Hydrostatics and Stability",
+  "playlistId": "PL33C351D5F12BD617",
+  "id": "c480"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Marine Construction and Welding",
+  "playlistId": "PLD7A954517F4AE47A",
+  "id": "c481"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Marine Hydrodynamics",
+  "playlistId": "PLbMVogVj5nJSIRSjVowUuoJ5Q2nMUBL35",
+  "id": "c482"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Ocean Structures and Materials",
+  "playlistId": "PLbMVogVj5nJRtMGDVdPQwrl43A8rZqNiq",
+  "id": "c483"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Performance of Marine Vehicles At Sea",
+  "playlistId": "PL926AA125A27D1284",
+  "id": "c484"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Port and Harbour Structures",
+  "playlistId": "PLbMVogVj5nJQVhj_88PBCh-cE8c-SRADX",
+  "id": "c485"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Seakeeping & Manoeuvring",
+  "playlistId": "PLF29953E04820E290",
+  "id": "c486"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Ship Resistance and Propulsion",
+  "playlistId": "PLbMVogVj5nJS4E3gsP-7fpUx7fZ-QH2pJ",
+  "id": "c487"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Strength and Vibration of Marine Structures",
+  "playlistId": "PLC9996419976201B6",
+  "id": "c488"
+ },
+ {
+  "discipline": "Ocean Engineering",
+  "title": "Wave Hydrodynamics",
+  "playlistId": "PLbMVogVj5nJSIKXXOIET_6TREFF40tMF5",
+  "id": "c489"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Astrophysics & Cosmology",
+  "playlistId": "PLbMVogVj5nJROKq6v6sZq74sjty86dAQ2",
+  "id": "c490"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Classical Field Theory",
+  "playlistId": "PLbMVogVj5nJRYLTwyuusiiFchFU-WvElW",
+  "id": "c491"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Condensed Matter Physics",
+  "playlistId": "PLbMVogVj5nJRjLrXp3kMtrIO8kZl1D1Jp",
+  "id": "c492"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Electromagnetic Theory",
+  "playlistId": "PLbMVogVj5nJSKsAlDEbNwKZY6zD0EbGMF",
+  "id": "c493"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Electronics",
+  "playlistId": "PL708EEA8184EA8F53",
+  "id": "c494"
+ },
+ {
+  "discipline": "Physics",
+  "title": "NUCLEAR REACTORS AND SAFETY- AN INTRODUCTION",
+  "playlistId": "PLbMVogVj5nJR6nZje9ewAeZ7lvnoVV1X3",
+  "id": "c495"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Nonequilibrium Statistical Mechanics",
+  "playlistId": "PLbMVogVj5nJQqNx0ElSk3Ip04Ofg7B22W",
+  "id": "c496"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Nuclear Physics Fundamentals and Application",
+  "playlistId": "PLbMVogVj5nJRvq-w3zway7k3GzmUDte3a",
+  "id": "c497"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Physical Applications of Stochastic Processes",
+  "playlistId": "PLbMVogVj5nJQo8D9D-D6lMqh4FJbPeE_f",
+  "id": "c498"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Plasma Physics: Fundamentals and Applications",
+  "playlistId": "PLbMVogVj5nJS4KY5UFWBLSu7kMzPbL35T",
+  "id": "c499"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Quantum Electronics",
+  "playlistId": "PL641752BF0D96C2A6",
+  "id": "c500"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Quantum Field Theory",
+  "playlistId": "PLbMVogVj5nJQ3slQodXQ5cSEtcp4HbNFc",
+  "id": "c501"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Quantum Mechanics I",
+  "playlistId": "PLbMVogVj5nJTXGlgqyzpUqozrU55oRX-H",
+  "id": "c502"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Quantum Mechanics and Application",
+  "playlistId": "PLbMVogVj5nJSkpUzNjD9D-QVHeRtBT2fv",
+  "id": "c503"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Relativistic Quantum Mechanics",
+  "playlistId": "PLbMVogVj5nJTDMhThY9xu2Tvg0u1RPuxO",
+  "id": "c504"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Select/Special Topics in Atomic Physics",
+  "playlistId": "PLbMVogVj5nJQAcTv17ETSh5-GNDbAo6BM",
+  "id": "c505"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Selected Topics in Mathematical Physics",
+  "playlistId": "PLbMVogVj5nJRhl_6TUGChpnt2Lg0AZvZu",
+  "id": "c506"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Semiconductor Optoelectronics",
+  "playlistId": "PLbMVogVj5nJSvhvgcBfT3e6HFFuhq2xqz",
+  "id": "c507"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Special Theory of Relativity",
+  "playlistId": "PLbMVogVj5nJQInU_xlAdGS2220biQma1x",
+  "id": "c508"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Special Topics in Classical Mechanics",
+  "playlistId": "PLB368471AD70B8A6B",
+  "id": "c509"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Special/Select Topics in the Theory of Atomic Coll",
+  "playlistId": "PLbMVogVj5nJSdsqPcC1J9SmCuKg5DIUwn",
+  "id": "c510"
+ },
+ {
+  "discipline": "Physics",
+  "title": "Topics in Nonlinear Dynamics",
+  "playlistId": "PLbMVogVj5nJQKk1E7OUQs_TcW_zQoaO4t",
+  "id": "c511"
+ },
+ {
+  "discipline": "Textile Engineering",
+  "title": "Natural Dyes",
+  "playlistId": "PLbMVogVj5nJTRX4NjF3bUpAPqfX5lVNcy",
+  "id": "c512"
+ },
+ {
+  "discipline": "Textile Engineering",
+  "title": "Theory of Yarn Structures",
+  "playlistId": "PLbMVogVj5nJTuolZYnmKt-mZ5MxbFCI-S",
+  "id": "c513"
+ }
+];
+
+const DISC_CODES = {
+  "Aerospace Engineering":"AE","Agriculture Engineering":"AGR","Architecture and Planning":"ARCH",
+  "Biotechnology and Bioengineering":"BT","Chemical Engineering":"CHE","Chemistry":"CHEM",
+  "Civil Engineering":"CE","Computer Science and Engineering":"CS","Design":"DES",
+  "Electrical and Electronics Engineering":"EEE","Humanities and Social Sciences":"HSS",
+  "Management":"MGT","Mathematics":"MATH","Mechanical Engineering":"ME",
+  "Metallurgical and Materials Engineering":"MME","Mining Engineering":"MIN",
+  "Multidisciplinary":"MULTI","Ocean Engineering":"OCE","Physics":"PHY","Textile Engineering":"TEX"
+};
+
+async function storageGet(key){
+  if (window.storage){
+    try{ const r = await window.storage.get(key,false); return r? r.value : null; }
+    catch(e){ return null; }
+  }
+  try{ return localStorage.getItem(key); }catch(e){ return null; }
+}
+async function storageSet(key,value){
+  if (window.storage){
+    try{ await window.storage.set(key,value,false); return; }catch(e){}
+  }
+  try{ localStorage.setItem(key,value); }catch(e){}
+}
+
+let bookmarks = new Set();
+let state = { tab:'home', discipline:'All', query:'', visibleCount:24 };
+let currentCourseId = null;
+
+const feedEl = document.getElementById('feed');
+const savedFeedEl = document.getElementById('savedFeed');
+const chipsEl = document.getElementById('chips');
+const countRowEl = document.getElementById('countRow');
+const homeViewEl = document.getElementById('homeView');
+const savedViewEl = document.getElementById('savedView');
+const watchViewEl = document.getElementById('watchView');
+const searchInput = document.getElementById('searchInput');
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function disciplineList(){
+  const set = new Set(COURSES.map(c=>c.discipline));
+  return ['All', ...Array.from(set).sort()];
+}
+
+function renderChips(){
+  chipsEl.innerHTML = disciplineList().map(d=>{
+    const active = d===state.discipline ? 'active' : '';
+    return `<button class="chip ${active}" data-d="${escapeHtml(d)}">${escapeHtml(d)}</button>`;
+  }).join('');
+  chipsEl.querySelectorAll('.chip').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.discipline = btn.getAttribute('data-d');
+      state.visibleCount = 24;
+      renderChips();
+      renderHome();
+    });
+  });
+}
+
+function filteredCourses(){
+  const q = state.query.trim().toLowerCase();
+  return COURSES.filter(c=>{
+    if (state.discipline!=='All' && c.discipline!==state.discipline) return false;
+    if (q && !(c.title.toLowerCase().includes(q) || c.discipline.toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+
+function cardHtml(c){
+  const code = DISC_CODES[c.discipline] || '—';
+  const isSaved = bookmarks.has(c.id);
+  return `
+  <div class="card" data-id="${c.id}">
+    <div class="card-thumb">
+      <span class="code-badge">${code}</span>
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.6"/><path d="M10 8.5l6 3.5-6 3.5v-7z" fill="currentColor"/></svg>
+      <button class="bookmark-btn ${isSaved?'active':''}" data-bookmark="${c.id}" aria-label="Save course">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 4h12v17l-6-4-6 4V4z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="card-body">
+      <p class="card-title serif">${escapeHtml(c.title)}</p>
+      <p class="card-meta">${escapeHtml(c.discipline)} · NPTEL lecture series</p>
+    </div>
+  </div>`;
+}
+
+function attachCardHandlers(container){
+  container.querySelectorAll('.bookmark-btn').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      toggleBookmark(btn.getAttribute('data-bookmark'));
+    });
+  });
+  container.querySelectorAll('.card').forEach(card=>{
+    card.addEventListener('click', ()=> openWatch(card.getAttribute('data-id')));
+  });
+}
+
+function renderHome(){
+  const list = filteredCourses();
+  countRowEl.textContent = `${list.length} course${list.length!==1?'s':''}`;
+  if (list.length===0){
+    feedEl.innerHTML = `<div class="empty-state"><span class="serif">No courses match</span>Try a different search or category.</div>`;
+    return;
+  }
+  const shown = list.slice(0, state.visibleCount);
+  feedEl.innerHTML = shown.map(cardHtml).join('') +
+    (list.length>shown.length ? `<button class="load-more" id="loadMoreBtn">Show more</button>` : '');
+  attachCardHandlers(feedEl);
+  const lm = document.getElementById('loadMoreBtn');
+  if (lm) lm.addEventListener('click', ()=>{ state.visibleCount+=24; renderHome(); });
+}
+
+function renderSaved(){
+  const list = COURSES.filter(c=>bookmarks.has(c.id));
+  if (list.length===0){
+    savedFeedEl.innerHTML = `<div class="empty-state"><span class="serif">Nothing saved yet</span>Tap the bookmark icon on any course to keep it here.</div>`;
+    return;
+  }
+  savedFeedEl.innerHTML = list.map(cardHtml).join('');
+  attachCardHandlers(savedFeedEl);
+}
+
+function toggleBookmark(id){
+  if (bookmarks.has(id)) bookmarks.delete(id); else bookmarks.add(id);
+  storageSet('bookmarks', JSON.stringify(Array.from(bookmarks)));
+  if (state.tab==='home') renderHome();
+  if (state.tab==='saved') renderSaved();
+  if (!watchViewEl.classList.contains('hidden')) updateWatchSaveBtn();
+}
+
+function openWatch(id){
+  currentCourseId = id;
+  const c = COURSES.find(x=>x.id===id);
+  if (!c) return;
+  document.getElementById('playerWrap').innerHTML =
+    `<iframe src="https://www.youtube.com/embed/videoseries?list=${c.playlistId}" title="${escapeHtml(c.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>`;
+  const isSaved = bookmarks.has(c.id);
+  document.getElementById('watchInfo').innerHTML = `
+    <span class="discipline-tag">${escapeHtml(c.discipline)}</span>
+    <h2 class="serif">${escapeHtml(c.title)}</h2>
+    <button class="save-btn ${isSaved?'active':''}" id="watchSaveBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M6 4h12v17l-6-4-6 4V4z" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      <span id="watchSaveLabel">${isSaved? 'Saved':'Save'}</span>
+    </button>
+    <p class="watch-note">Full NPTEL lecture series, played from its official YouTube playlist. Use the playlist panel inside the player to jump between lectures.</p>
+  `;
+  document.getElementById('watchSaveBtn').addEventListener('click', ()=>toggleBookmark(c.id));
+  watchViewEl.classList.remove('hidden');
+  window.scrollTo(0,0);
+}
+
+function updateWatchSaveBtn(){
+  const btn = document.getElementById('watchSaveBtn');
+  const label = document.getElementById('watchSaveLabel');
+  if (!btn || !currentCourseId) return;
+  const isSaved = bookmarks.has(currentCourseId);
+  btn.classList.toggle('active', isSaved);
+  if (label) label.textContent = isSaved ? 'Saved' : 'Save';
+}
+
+document.getElementById('backBtn').addEventListener('click', ()=>{
+  document.getElementById('playerWrap').innerHTML = '';
+  watchViewEl.classList.add('hidden');
+});
+
+document.querySelectorAll('nav.bottomnav button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.bottomnav button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.getAttribute('data-tab');
+    state.tab = tab;
+    homeViewEl.style.display = tab==='home' ? 'block':'none';
+    savedViewEl.style.display = tab==='saved' ? 'block':'none';
+    if (tab==='saved') renderSaved();
+  });
+});
+
+let searchTimer;
+searchInput.addEventListener('input', ()=>{
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(()=>{
+    state.query = searchInput.value;
+    state.visibleCount = 24;
+    renderHome();
+  }, 150);
+});
+
+async function init(){
+  const raw = await storageGet('bookmarks');
+  if (raw){ try{ bookmarks = new Set(JSON.parse(raw)); }catch(e){} }
+  renderChips();
+  renderHome();
+  if ('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+}
+init();
+</script>
+</body>
+</html>
