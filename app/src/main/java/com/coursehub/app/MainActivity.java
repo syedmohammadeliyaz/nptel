@@ -120,7 +120,7 @@ public class MainActivity extends Activity {
                 webView.setVisibility(View.GONE);
                 root.addView(view, new FrameLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-                setImmersive(true);
+                applyImmersive(true);
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
             }
 
@@ -234,7 +234,7 @@ public class MainActivity extends Activity {
     }
 
     @SuppressWarnings("deprecation")
-    private void setImmersive(boolean on) {
+    private void applyImmersive(boolean on) {
         int flags = on
                 ? View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
@@ -251,7 +251,7 @@ public class MainActivity extends Activity {
         root.removeView(customView);
         customView = null;
         webView.setVisibility(View.VISIBLE);
-        setImmersive(false);
+        applyImmersive(false);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         if (customViewCallback != null) {
             customViewCallback.onCustomViewHidden();
