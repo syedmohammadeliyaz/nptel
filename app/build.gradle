@@ -10,8 +10,8 @@ android {
         applicationId "com.coursehub.app"
         minSdk 26
         targetSdk 34
-        versionCode 2
-        versionName "2.0"
+        versionCode 3
+        versionName "2.1"
     }
 
     signingConfigs {
@@ -26,6 +26,7 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            debuggable false   // sideloaded build: don't leave it open to adb run-as / debugger attach
         }
         release {
             minifyEnabled false

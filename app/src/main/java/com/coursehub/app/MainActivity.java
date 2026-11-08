@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.RenderProcessGoneDetail;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebResourceResponse;
@@ -30,9 +31,11 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
 
 public class MainActivity extends Activity {
 
@@ -50,6 +53,17 @@ public class MainActivity extends Activity {
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
                     + "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
     private static final int MAX_RESPONSE_BYTES = 8 * 1024 * 1024;
+    private static final int MAX_PENDING_RESULTS = 8;
+
+    // The page may only ask us to open these exact YouTube link shapes. The raw string is checked,
+    // not Uri.getHost(), because Android's URL parsing can differ from the browser's.
+    private static final Pattern YT_LINK = Pattern.compile(
+            "^https://www\\.youtube\\.com/(watch\\?v=[A-Za-z0-9_-]{1,64}(&list=[A-Za-z0-9_-]{1,64})?"
+                    + "|playlist\\?list=[A-Za-z0-9_-]{1,64})$");
+    private static final Pattern REQ_ID = Pattern.compile("^[A-Za-z0-9_-]{1,64}$");
+
+    // Used to stop a crash loop if the WebView's renderer keeps dying right after a restart.
+    private static long lastRendererGone;
 
     private FrameLayout root;
     private WebView webView;
@@ -58,6 +72,10 @@ public class MainActivity extends Activity {
 
     private final ExecutorService pool = Executors.newFixedThreadPool(3);
     private final ConcurrentHashMap<String, String> results = new ConcurrentHashMap<>();
+
+    // One-time key given to our own page in the URL fragment. Android exposes the Native bridge to
+    // every frame, including the YouTube player iframe; a frame that cannot read this key cannot use it.
+    private final String bridgeToken = UUID.randomUUID().toString();
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
     @Override
@@ -96,9 +114,21 @@ public class MainActivity extends Activity {
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                if (!request.isForMainFrame()) return false;          // the YouTube player's own frame
                 Uri u = request.getUrl();
-                if (!request.isForMainFrame() || HOST.equals(u.getHost())) return false;
-                openInBrowser(u);
+                boolean https = "https".equals(u.getScheme());
+                if (https && HOST.equals(u.getHost())) return false;  // our own page
+                if (https) openInBrowser(u);                          // web links leave the app
+                return true;                                          // any other scheme is dropped
+            }
+
+            @Override
+            public boolean onRenderProcessGone(WebView view, RenderProcessGoneDetail detail) {
+                // The WebView's renderer was killed (usually low memory). Without this the app crashes.
+                long now = System.currentTimeMillis();
+                boolean again = now - lastRendererGone < 15000;
+                lastRendererGone = now;
+                if (again) finish(); else recreate();
                 return true;
             }
 
@@ -132,14 +162,18 @@ public class MainActivity extends Activity {
 
         root.addView(webView);
         setContentView(root);
-        webView.loadUrl(START_URL);
+        webView.loadUrl(START_URL + "#" + bridgeToken);
     }
 
-    /** Methods the page can call. Deliberately narrow: YouTube browse + open YouTube links. */
+    /**
+     * Methods the page can call. Deliberately narrow: YouTube browse + open YouTube links.
+     * Every call must carry the one-time key (bridgeToken) that only our own page knows.
+     */
     private class Bridge {
         @JavascriptInterface
-        public void browse(final String reqId, final String body) {
-            if (reqId == null || body == null || body.length() > 20000) return;
+        public void browse(String token, final String reqId, final String body) {
+            if (!bridgeToken.equals(token) || reqId == null || !REQ_ID.matcher(reqId).matches()
+                    || body == null || body.length() > 20000) return;
             pool.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -150,6 +184,7 @@ public class MainActivity extends Activity {
                         String m = e.getMessage();
                         out = "{\"__error\":" + JSONObject.quote(m == null ? "Network error" : m) + "}";
                     }
+                    if (results.size() >= MAX_PENDING_RESULTS) results.clear();
                     results.put(reqId, out);
                     final String js = "window.__nativeDone && window.__nativeDone(" + JSONObject.quote(reqId) + ")";
                     runOnUiThread(new Runnable() {
@@ -163,21 +198,22 @@ public class MainActivity extends Activity {
         }
 
         @JavascriptInterface
-        public String take(String reqId) {
+        public String take(String token, String reqId) {
+            if (!bridgeToken.equals(token) || reqId == null) return "";
             String v = results.remove(reqId);
             return v == null ? "" : v;
         }
 
         @JavascriptInterface
-        public void openExternal(String url) {
-            try {
-                Uri u = Uri.parse(url);
-                String h = u.getHost() == null ? "" : u.getHost();
-                boolean ok = "https".equals(u.getScheme())
-                        && (h.equals("youtube.com") || h.endsWith(".youtube.com") || h.equals("youtu.be"));
-                if (ok) openInBrowser(u);
-            } catch (Exception ignored) {
-            }
+        public void openExternal(String token, final String url) {
+            if (!bridgeToken.equals(token) || url == null || url.length() > 300
+                    || !YT_LINK.matcher(url).matches()) return;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    openInBrowser(Uri.parse(url));
+                }
+            });
         }
     }
 
